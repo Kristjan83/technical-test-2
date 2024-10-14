@@ -17,16 +17,23 @@ ChartJS.register(...registerables);
 
 export default function ProjectView() {
   const [project, setProject] = useState(null);
+ 
   const [copied, setCopied] = React.useState(false);
   const { id } = useParams();
   const history = useHistory();
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await api.get(`/project/${id}`);
-      setProject(u);
+      try {
+        const { data: u } = await api.get(`/project/${id}`);
+        console.log("API Response:", u);
+        setProject(u);
+      } catch (error) {
+        console.error("Error fetching project data:", error);
+      }
     })();
-  }, []);
+  }, [id]);
+  
 
   useEffect(() => {
     if (copied) {
@@ -46,7 +53,7 @@ export default function ProjectView() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => history.push(`/project/edit/${project?._id}`)}
+                onClick={() => history.push(`/project/edit/${id}`)}
                 className="border !border-[#0560FD] text-[#0560FD] py-[7px] px-[20px] bg-[#FFFFFF] rounded-[16px]">
                 Edit
               </button>
@@ -60,44 +67,54 @@ export default function ProjectView() {
 }
 
 const ProjectDetails = ({ project }) => {
-  console.log(project);
+  if (!project || project.length === 0) {
+    return <div>Loading...</div>; // Show a loading state if the project data is not available
+  }
+
+  console.log(project); // This should log the array of project objects
+
   return (
     <div>
       <div className="flex flex-wrap p-3">
-        <div className="w-full ">
-          <div className="flex gap-3">
-            <div className="w-full">
-              <div className="flex justify-between gap-2">
-                <div className="flex gap-20">
-                  <span className="w-fit text-[20px] text-[#0C1024] font-bold">Nom du projet : </span>
-                  <span className="w-fit text-[20px] text-[#0C1024] font-bold">{project.name.toString()}</span>
+        {project.map((proj, index) => (
+          <div key={proj._id || index} className="w-full">
+            <div className="flex gap-3">
+              <div className="w-full">
+                <div className="flex justify-between gap-2">
+                  <div className="flex gap-20">
+                    <span className="w-fit text-[20px] text-[#0C1024] font-bold">Nom du projet : </span>
+                    <span className="w-fit text-[20px] text-[#0C1024] font-bold">{proj.name}</span>
+                  </div>
+                  <div className="flex flex-1 flex-column items-end gap-3">
+                    <Links project={proj} />
+                  </div>
                 </div>
-                <div className="flex flex-1 flex-column items-end gap-3">
-                  <Links project={project} />
-                </div>
-              </div>
-              <div className="w-full md:w-[50%]">
-                <div className="pt-2 ">
-                  <span className="text-[16px] text-[#676D7C] font-medium">{project.description ? project.description : ""}</span>
-                </div>
-                <div className="mt-4 text-[18px] text-[#000000] font-semibold">
-                  {`Objective :`} <span className="text-[#676D7C] text-[16px] font-medium">{project.objective ? project.objective : ""}</span>
-                </div>
-                <div className="mt-2 mr-2">
-                  <span className="text-[18px] font-semibold text-[#000000]">Budget consummed {project.paymentCycle === "MONTHLY" && "this month"}:</span>
+                <div className="w-full md:w-[50%]">
+                  <div className="pt-2 ">
+                    <span className="text-[16px] text-[#676D7C] font-medium">{proj.description ? proj.description : ""}</span>
+                  </div>
+                  <div className="mt-4 text-[18px] text-[#000000] font-semibold">
+                    {`Objective :`} <span className="text-[#676D7C] text-[16px] font-medium">{proj.objective ? proj.objective : ""}</span>
+                  </div>
+                  <div className="mt-2 mr-2">
+                    <span className="text-[18px] font-semibold text-[#000000]">
+                      Budget consummed {proj.paymentCycle === "MONTHLY" && "this month"}:
+                    </span>
 
-                  <Budget project={project} />
+                    <Budget project={proj} />
+                  </div>
                 </div>
               </div>
             </div>
+            <div className="flex flex-wrap p-3 gap-4"></div>
+            <Activities project={proj} />
           </div>
-        </div>
+        ))}
       </div>
-      <div className="flex flex-wrap p-3 gap-4"></div>
-      <Activities project={project} />
     </div>
   );
 };
+
 const Budget = ({ project }) => {
   const [activities, setActivities] = useState([10, 29, 18, 12]);
 

@@ -34,6 +34,7 @@ export default function EditProject() {
   if (!project) return <Loader />;
   return (
     <div>
+      {project.map((projectEle) =>(
       <div className="appContainer pt-24">
         <div className="bg-[#FFFFFF] pb-4 border border-[#E5EAEF] rounded-[16px]">
           <div className="flex justify-between p-3 border-b border-[#E5EAEF]">
@@ -45,12 +46,22 @@ export default function EditProject() {
             </button>
           </div>
           <Formik
-            initialValues={project}
+            initialValues={{
+              name: projectEle.name || '',
+              lead: projectEle.lead || '',
+              status: projectEle.status || '',
+              budget_max_monthly: projectEle.budget_max_monthly || '',
+              paymentCycle: projectEle.paymentCycle || '',
+              description: projectEle.description || '',
+              objective: projectEle.objective || '',
+              website: projectEle.website || '',
+              links: projectEle.links || [],
+            }}
             onSubmit={async (values) => {
               try {
-                await api.put(`/project/${project._id}`, values);
-                toast.success(`${project.name} updated!`);
-                history.push(`/project/${project._id}`);
+                await api.put(`/project/${projectEle._id}`, values);
+                toast.success(`${projectEle.name} updated!`);
+                history.push(`/project/${projectEle._id}`);
               } catch (e) {
                 console.log(e);
                 toast.error("Some Error!");
@@ -235,6 +246,7 @@ export default function EditProject() {
           </Formik>
         </div>
       </div>
+      ))}
     </div>
   );
 }

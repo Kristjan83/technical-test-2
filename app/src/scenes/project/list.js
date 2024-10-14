@@ -35,7 +35,7 @@ const ProjectList = () => {
 
   return (
     <div className="w-full p-2 md:!px-8">
-      <Create onChangeSearch={handleSearch} />
+      <Create onChangeSearch={handleSearch} onAddProject={(newProject) => setProjects((prev) => [...prev, newProject])} />
       <div className="py-3">
         {activeProjects.map((hit) => {
           return (
@@ -92,13 +92,12 @@ const Budget = ({ project }) => {
   return <ProgressBar percentage={width} max={budget_max_monthly} value={total} />;
 };
 
-const Create = ({ onChangeSearch }) => {
+const Create = ({ onChangeSearch, onAddProject }) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mb-[10px] ">
+    <div className="mb-[10px]">
       <div className="flex justify-between flex-wrap">
-        {/* Search Input */}
         <div className="relative text-[#A0A6B1]">
           <span className="absolute inset-y-0 left-0 flex items-center pl-2">
             <button type="submit" className="p-1">
@@ -115,7 +114,6 @@ const Create = ({ onChangeSearch }) => {
             onChange={(e) => onChangeSearch(e.target.value)}
           />
         </div>
-        {/* Create New Button */}
         <button
           className="bg-[#0560FD] text-[#fff] py-[12px] px-[20px] rounded-[10px] text-[16px] font-medium"
           onClick={() => {
@@ -127,7 +125,7 @@ const Create = ({ onChangeSearch }) => {
 
       {open ? (
         <div
-          className=" absolute top-0 bottom-0 left-0 right-0 bg-[#00000066] flex justify-center p-[1rem] z-50 "
+          className="absolute top-0 bottom-0 left-0 right-0 bg-[#00000066] flex justify-center p-[1rem] z-50"
           onClick={() => {
             setOpen(false);
           }}>
@@ -136,7 +134,6 @@ const Create = ({ onChangeSearch }) => {
             onClick={(e) => {
               e.stopPropagation();
             }}>
-            {/* Modal Body */}
             <Formik
               initialValues={{}}
               onSubmit={async (values, { setSubmitting }) => {
@@ -144,6 +141,7 @@ const Create = ({ onChangeSearch }) => {
                   values.status = "active";
                   const res = await api.post("/project", values);
                   if (!res.ok) throw res;
+                  onAddProject(res.data);
                   toast.success("Created!");
                   setOpen(false);
                 } catch (e) {
@@ -156,7 +154,7 @@ const Create = ({ onChangeSearch }) => {
                 <React.Fragment>
                   <div className="w-full md:w-6/12 text-left">
                     <div>
-                      <div className="text-[14px] text-[#212325] font-medium	">Name</div>
+                      <div className="text-[14px] text-[#212325] font-medium">Name</div>
                       <input className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]" name="name" value={values.name} onChange={handleChange} />
                     </div>
                     <LoadingButton
@@ -175,5 +173,6 @@ const Create = ({ onChangeSearch }) => {
     </div>
   );
 };
+
 
 export default ProjectList;
